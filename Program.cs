@@ -62,10 +62,16 @@ app.MapPost("/enter", async (AppDb db, HttpContext ctx) =>
     {
         record.Counter++;
         record.LastEnetered = DateTime.UtcNow;
-
-        // append new line at bottom
-        record.Text += entryText;
+        record.Text = string.Empty;
     }
+
+    var newRecord = new Enterence
+    {
+        Counter = -1,
+        LastEnetered = DateTime.UtcNow,
+        Text = entryText
+    };
+    db.Enterence.Add(record);
 
     await db.SaveChangesAsync();
 
