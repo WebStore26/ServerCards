@@ -108,12 +108,47 @@ app.Run();
 // ===================
 // Convert FUNCTION
 // ===================
-static string ConvertDatabaseUrl(string url)
+static string ConvertDatabaseUrl(string rawUrl)
 {
-    var uri = new Uri(url);
-    var userInfo = uri.UserInfo.Split(':');
+    // railway example:
+    // postgres://user:pass@host:port/dbname
 
-    return $"Host={uri.Host};Port={uri.Port};Username={userInfo[0]};Password={userInfo[1]};" +
-           $"Database={uri.AbsolutePath.TrimStart('/')};SSL Mode=Require;Trust Server Certificate=true;";
+    if (!rawUrl.StartsWith("postgres://") && !rawUrl.StartsWith("postgresql://"))
+        throw new Exception("Invalid DATABASE_URL format");
+
+    // Remove protocol
+    string url = rawUrl.Replace("postgres://", "").Replace("postgresql://", "");
+
+    // Split user:pass@host:port/db
+    var atIndex = url.IndexOf("@");
+    var userPass = url.Substring(0, atIndex);
+    var hostPortDb = url.Substring(atIndex + 1);
+
+    // user + pass
+    var user = userPass.Split(':')[0];
+    var pass = userPass.Split(':')[1];
+
+    // host + port + db
+    var parts = hostPortDb.Split('/');
+    var hostPort = parts[0];
+    var db = parts[1];
+
+    string host;
+    string port;
+
+    if (hostPort.Contains(":"))
+    {
+        host = hostPort.Split(':')[0];
+        port = hostPort.Split(':')[1];
+    }
+    else
+    {
+        host = hostPort;
+        port = "5432"; // default fallback
+    }
+
+    return
+        $"Host={host};Port={port};Username={user};Password={pass};Database={db};SSL Mode=Require;Trust Server Certificate=true;";
 }
+
 
