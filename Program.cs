@@ -2,6 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", p =>
+        p.WithOrigins("https://servercards-production.up.railway.app")
+         .AllowAnyOrigin()
+         .AllowAnyMethod()
+         .AllowAnyHeader());
+});
 
 // Get Railway DATABASE_URL
 var dbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
@@ -18,6 +26,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Auto-create tables
 using (var scope = app.Services.CreateScope())
