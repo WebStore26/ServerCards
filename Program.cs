@@ -38,9 +38,15 @@ using (var scope = app.Services.CreateScope())
 // ============ ENTERENCE ENDPOINTS ============
 
 // POST /enter — increase counter
-app.MapPost("/enter", async (AppDb db) =>
+app.MapPost("/enter", async (AppDb db, HttpContext ctx) =>
 {
+    string userIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    string userAgent = ctx.Request.Headers["User-Agent"].ToString();
+
     var record = await db.Enterence.FirstOrDefaultAsync();
+
+    string entryText =
+        $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] IP: {userIp}, Agent: {userAgent}\n";
 
     if (record == null)
     {
@@ -48,7 +54,7 @@ app.MapPost("/enter", async (AppDb db) =>
         {
             Counter = 1,
             LastEnetered = DateTime.UtcNow,
-            Text = "Site entries counter"
+            Text = entryText
         };
         db.Enterence.Add(record);
     }
@@ -56,6 +62,9 @@ app.MapPost("/enter", async (AppDb db) =>
     {
         record.Counter++;
         record.LastEnetered = DateTime.UtcNow;
+
+        // append new line at bottom
+        record.Text += entryText;
     }
 
     await db.SaveChangesAsync();
