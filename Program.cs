@@ -85,16 +85,12 @@ app.MapPost("/enter", async (AppDb db, HttpContext ctx) =>
 // GET /enter — return counter info
 app.MapGet("/enter", async (AppDb db) =>
 {
-    var record = await db.Enterence.FirstOrDefaultAsync();
+    var records = await db.Enterence.ToListAsync();
 
-    if (record == null)
+    if (records == null)
         return Results.Ok(new { counter = 0, last = (DateTime?)null });
 
-    return Results.Ok(new
-    {
-        counter = record.Counter,
-        last = record.LastEnetered
-    });
+    return Results.Ok(records);
 });
 
 
